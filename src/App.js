@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const App = () => {
+  // eslint-disable-next-line no-unused-vars
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 

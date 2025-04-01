@@ -267,7 +267,7 @@ const Home = () => {
         showEdit={showEdit} 
         setShowEdit={setShowEdit} 
         editedValues={editedValues} 
-        setEditedValue={setEditedValues} 
+        setEditedValues={setEditedValues} 
         handleEditSave={handleEditSave}
       />
     </div>

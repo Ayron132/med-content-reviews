@@ -1,12 +1,16 @@
 import { doc, setDoc, collection, getDoc, getDocs } from "firebase/firestore";
 import { db, auth } from "../firebase/firebaseConfig";
-import { addDays, isMonday } from "date-fns";
+import { addDays, isMonday, isSunday } from "date-fns";
 
 const calculateNextRevision = (lastRevisionDate, studyDate, specificRevisionDate = false) => {
   const baseDate = new Date(lastRevisionDate || studyDate);
   const daysToAdd = specificRevisionDate || (lastRevisionDate ? 30 : 21);
   let nextRevision = addDays(baseDate, Number(daysToAdd));
-  if (isMonday(nextRevision)) nextRevision = addDays(nextRevision, 1);
+  
+  while (isSunday(nextRevision) || isMonday(nextRevision)) {
+    nextRevision = addDays(nextRevision, 1);
+  }
+  
   return nextRevision.toISOString().split("T")[0];
 };
 
@@ -14,13 +18,17 @@ const findNextAvailableDate = async (proposedDate, userDocRef) => {
   const revisionsSnapshot = await getDocs(collection(userDocRef, "revisions"));
   const existingDates = new Set(revisionsSnapshot.docs.map(doc => doc.data().revisionDate));
 
-  while (existingDates.has(proposedDate)) {
-    proposedDate = new Date(proposedDate);
-    proposedDate.setDate(proposedDate.getDate() + 1);
-    proposedDate = proposedDate.toISOString().split("T")[0];
+  while (true) {
+    const dateObj = new Date(proposedDate);
+    
+    if (!existingDates.has(proposedDate) && 
+        !isSunday(dateObj) && 
+        !isMonday(dateObj)) {
+      return proposedDate;
+    }
+    
+    proposedDate = addDays(dateObj, 1).toISOString().split("T")[0];
   }
-
-  return proposedDate;
 };
 
 const createRevision = async (userDocRef, subject, revisionDate, revisionNumber) => {
